@@ -34,7 +34,7 @@ public class KafkaAppender extends AppenderBase<ILoggingEvent> {
       exception.printStackTrace();
       throw new RuntimeException("KafkaAppender: Exception initializing Producer.",exception);
     }
-    System.out.println("KafkaAppender: Producer intitialized: "+ producer);
+    System.out.println("KafkaAppender: Producer initialized: "+ producer);
     if (topic == null) {
       LOGGER.error("KafkaAppender requires a topic. Add this to the appender configuration.");
       System.out.println("KafkaAppender requires a topic. Add this to the appender configuration.");

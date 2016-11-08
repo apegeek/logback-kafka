@@ -75,6 +75,11 @@ specifying a custom formatter class:
             <expectJson>true</expectJson>
             <!-- optional -->
             <includeMethodAndLineNumber>true</includeMethodAndLineNumber>
+            <!-- Mark every message with these additional properties.-->
+            <extraProperties>
+              serverId=SERVER-ID
+              domain=www.domain.com
+            </extraProperties>
         </formatter>
     </appender>
     <root level="debug">

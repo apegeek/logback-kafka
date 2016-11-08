@@ -2,14 +2,19 @@ package com.github.ptgoetz.logback.kafka.formatter;
 
 import ch.qos.logback.classic.spi.ILoggingEvent;
 
+import java.io.IOException;
+import java.io.StringReader;
+import java.util.Enumeration;
+import java.util.Properties;
+
 public class JsonFormatter implements Formatter {
-  private static final String QUOTE = "\"";
-  private static final String COLON = ":";
-  private static final String COMMA = ",";
+  private static final char QUOTE = '"';
+  private static final char COLON = ':';
+  private static final char COMMA = ',';
 
   private boolean expectJson = false;
   private boolean includeMethodAndLineNumber = false;
-  private String serverId = null;
+  private String extraProperties = null;
 
   public String format(ILoggingEvent event) {
     StringBuilder sb = new StringBuilder();
@@ -42,10 +47,8 @@ public class JsonFormatter implements Formatter {
         quote(stackTraceElement.getLineNumber() + "", sb);
       }
     }
-    if(serverId!=null){
-      sb.append(COMMA);
-      fieldName("serverId", sb);
-      quote(serverId,sb);
+    if(this.extraProperties!=null){
+      sb.append(this.extraProperties);
     }
     sb.append("}");
     return sb.toString();
@@ -78,11 +81,26 @@ public class JsonFormatter implements Formatter {
     this.includeMethodAndLineNumber = includeMethodAndLineNumber;
   }
 
-  public String getServerId() {
-    return serverId;
+  public String getExtraProperties() {
+    return extraProperties;
   }
 
-  public void setServerId(String serverId) {
-    this.serverId = serverId;
+  public void setExtraProperties(String thatExtraProperties) {
+    final Properties properties = new Properties();
+    try {
+      properties.load(new StringReader(thatExtraProperties));
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+    Enumeration<?> enumeration = properties.propertyNames();
+    StringBuilder sb = new StringBuilder();
+    while(enumeration.hasMoreElements()){
+      String name = (String)enumeration.nextElement();
+      String value = properties.getProperty(name);
+      sb.append(COMMA);
+      fieldName(name, sb);
+      quote(value,sb);
+    }
+    this.extraProperties = sb.toString();
   }
 }
