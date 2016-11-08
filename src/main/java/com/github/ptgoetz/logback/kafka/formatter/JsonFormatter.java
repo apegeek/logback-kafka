@@ -1,76 +1,53 @@
 package com.github.ptgoetz.logback.kafka.formatter;
 
 import ch.qos.logback.classic.spi.ILoggingEvent;
+import org.json.simple.JSONObject;
+import org.json.simple.JSONValue;
 
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
 
 public class JsonFormatter implements Formatter {
-  private static final char QUOTE = '"';
-  private static final char COLON = ':';
-  private static final char COMMA = ',';
 
-  private boolean expectJson = false;
+  private boolean expectJsonMessage = false;
   private boolean includeMethodAndLineNumber = false;
-  private String extraProperties = null;
+  private Map extraPropertiesMap = null;
 
   public String format(ILoggingEvent event) {
-    StringBuilder sb = new StringBuilder();
-    sb.append("{");
-    fieldName("level", sb);
-    quote(event.getLevel().levelStr, sb);
-    sb.append(COMMA);
-    fieldName("logger", sb);
-    quote(event.getLoggerName(), sb);
-    sb.append(COMMA);
-    fieldName("timestamp", sb);
-    sb.append(event.getTimeStamp());
-    sb.append(COMMA);
-    fieldName("message", sb);
-    if (this.expectJson) {
-      sb.append(event.getFormattedMessage());
-    } else {
-      quote(event.getFormattedMessage(), sb);
+    JSONObject jsonObject = new JSONObject();
+    jsonObject.put("level", event.getLevel().levelStr);
+    jsonObject.put("logger", event.getLoggerName());
+    jsonObject.put("timestamp", event.getTimeStamp());
+    if( expectJsonMessage ) {
+      Object object = JSONValue.parse(event.getFormattedMessage());
+      jsonObject.put("message", object );
+    }else{
+      jsonObject.put("message", event.getFormattedMessage());
     }
-    if(includeMethodAndLineNumber) {
-      sb.append(COMMA);
-      // Caller Data
+    if (includeMethodAndLineNumber) {
       StackTraceElement[] callerDataArray = event.getCallerData();
       if (callerDataArray != null && callerDataArray.length > 0) {
         StackTraceElement stackTraceElement = callerDataArray[0];
-        fieldName("method", sb);
-        quote(stackTraceElement.getMethodName(), sb);
-        sb.append(COMMA);
-        fieldName("lineNumber", sb);
-        quote(stackTraceElement.getLineNumber() + "", sb);
+        jsonObject.put("method", stackTraceElement.getMethodName());
+        jsonObject.put("lineNumber", stackTraceElement.getLineNumber() + "");
       }
     }
-    if(this.extraProperties!=null){
-      sb.append(this.extraProperties);
+    if (this.extraPropertiesMap != null) {
+      jsonObject.putAll(extraPropertiesMap);
     }
-    sb.append("}");
-    return sb.toString();
+    return jsonObject.toJSONString();
   }
 
-  private static void fieldName(String name, StringBuilder sb) {
-    quote(name, sb);
-    sb.append(COLON);
+  public boolean getExpectJsonMessage() {
+    return expectJsonMessage;
   }
 
-  private static void quote(String value, StringBuilder sb) {
-    sb.append(QUOTE);
-    sb.append(value);
-    sb.append(QUOTE);
-  }
-
-  public boolean getExpectJson() {
-    return expectJson;
-  }
-
-  public void setExpectJson(boolean expectJson) {
-    this.expectJson = expectJson;
+  public void setExpectJsonMessage(boolean expectJsonMessage) {
+    this.expectJsonMessage = expectJsonMessage;
   }
 
   public boolean getIncludeMethodAndLineNumber() {
@@ -81,26 +58,20 @@ public class JsonFormatter implements Formatter {
     this.includeMethodAndLineNumber = includeMethodAndLineNumber;
   }
 
-  public String getExtraProperties() {
-    return extraProperties;
-  }
-
   public void setExtraProperties(String thatExtraProperties) {
     final Properties properties = new Properties();
     try {
       properties.load(new StringReader(thatExtraProperties));
+      Enumeration<?> enumeration = properties.propertyNames();
+      extraPropertiesMap = new HashMap();
+      while(enumeration.hasMoreElements()){
+        String name = (String)enumeration.nextElement();
+        String value = properties.getProperty(name);
+        extraPropertiesMap.put(name,value);
+      }
     } catch (IOException e) {
+      System.out.println("There was a problem reading the extra properties configuration: "+e.getMessage());
       e.printStackTrace();
     }
-    Enumeration<?> enumeration = properties.propertyNames();
-    StringBuilder sb = new StringBuilder();
-    while(enumeration.hasMoreElements()){
-      String name = (String)enumeration.nextElement();
-      String value = properties.getProperty(name);
-      sb.append(COMMA);
-      fieldName(name, sb);
-      quote(value,sb);
-    }
-    this.extraProperties = sb.toString();
   }
 }
