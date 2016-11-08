@@ -1,7 +1,7 @@
 # logback-kafka
 
 
-Logback appenders for logging data to Apache Kafka
+Logback Appender for logging data to Apache Kafka.
 
 
 ## Maven Dependency
@@ -24,8 +24,6 @@ provide the 'bootstrap.servers', 'key.serializer', and 'value.serializer' proper
 The properties you submit will be passed on to the Kafka Producer. A complete guide to the Producer 
 properties can be found [here](https://kafka.apache.org/documentation.html#producerconfigs).
 
-An option to log to System out is provided as a sanity check while setting up.
-
 ```xml
 <?xml version="1.0" encoding="UTF-8" ?>
 <configuration>
@@ -37,7 +35,6 @@ An option to log to System out is provided as a sanity check while setting up.
             value.serializer=org.apache.kafka.common.serialization.StringSerializer
             key.serializer=org.apache.kafka.common.serialization.StringSerializer
         </kafkaProducerProperties>
-        <logToSystemOut>true</logToSystemOut>
     </appender>
     <root level="debug">
         <appender-ref ref="KAFKA" />
@@ -45,7 +42,7 @@ An option to log to System out is provided as a sanity check while setting up.
 </configuration>
 ```
 
-## Overriding Default Behavior
+## Options
 By default, the Kafka appender will simply write the received log 
 message to the kafka queue. You can override this behavior by 
 specifying a custom formatter class:
@@ -64,6 +61,8 @@ specifying a custom formatter class:
             value.serializer=org.apache.kafka.common.serialization.StringSerializer
             key.serializer=org.apache.kafka.common.serialization.StringSerializer
         </kafkaProducerProperties>
+        <!-- Log to system out. Useful when setting up. Not recommended for day-to-day operations. --> 
+        <logToSystemOut>true</logToSystemOut>
         <!-- specify a custom formatter -->
         <formatter class="com.github.ptgoetz.logback.kafka.formatter.JsonFormatter">
             <!--
@@ -73,7 +72,7 @@ specifying a custom formatter class:
             JSON object.
             -->
             <expectJson>true</expectJson>
-            <!-- optional -->
+            <!-- Optional -->
             <includeMethodAndLineNumber>true</includeMethodAndLineNumber>
             <!-- Mark every message with these additional properties.-->
             <extraProperties>
