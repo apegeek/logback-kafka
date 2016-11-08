@@ -11,7 +11,7 @@ To use logback-kafka in your project add to following to your pom.xml:
 <dependency>
     <groupId>com.github.ptgoetz</groupId>
     <artifactId>logback-kafka</artifactId>
-    <version>0.2.0</version>
+    <version>0.2</version>
 </dependency>
 ```
 
@@ -71,7 +71,7 @@ specifying a custom formatter class:
             and wrapped in quotes. Otherwise it will be treated as a parseable
             JSON object.
             -->
-            <expectJson>true</expectJson>
+            <expectJsonMessage>true</expectJsonMessage>
             <!-- Optional -->
             <includeMethodAndLineNumber>true</includeMethodAndLineNumber>
             <!-- Mark every message with these additional properties.-->
